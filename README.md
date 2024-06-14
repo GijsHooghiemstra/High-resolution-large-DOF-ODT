@@ -1,6 +1,6 @@
 # High-resolution-large-DOF-ODT
 
-[!IMPORTANT] 
+[!IMPORTANT]
 (14-6-2024) Code is being cleaned for readability.
 
 Repository containing code used for my master thesis.
