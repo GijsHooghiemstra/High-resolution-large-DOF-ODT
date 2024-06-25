@@ -9,7 +9,7 @@ Contents:
  - Python scripts for Mie code: generateField.py (Mie sphere), generateFieldSingleCylinder.py (Mie cylinder)
  - Jupyter notebook for defocus ODT
  - Jupyter notebook for Zernike aberrations
- - Jupyter notebook for Born / Rytov
+ - Jupyter notebook for Born / Rytov: Born-Rytov.ipynb
  - Jupyter notebook for iterative reconstructoin
  - CUDA code for filtered backpropagation algorithm
 
