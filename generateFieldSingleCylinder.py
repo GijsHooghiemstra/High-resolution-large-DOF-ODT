@@ -27,7 +27,7 @@ def calc_field(name, lambda0, n_med, n_obj, R, Nx, Ny, Lx, Ly, z0):
     #Physical
     k0 = 2 * np.pi / lambda0 #m^-1
 
-    nr = n_obj# / n_med # [-]
+    n_r = n_obj# / n_med # [-]
 
     dx = Lx / Nx #m
     dy = Ly / Ny #m
@@ -61,8 +61,8 @@ def calc_field(name, lambda0, n_med, n_obj, R, Nx, Ny, Lx, Ly, z0):
     denominator = np.zeros(Ltot, dtype=complex)
 
     for ll in l:
-        numerator[ll] = n_r*jv(ll, k0*R)*jv(ll, k0*n_r*R, derivative=True) - jv(ll, k0*R, derivative=True)*jv(ll, k0*n_r*R)
-        denominator[ll] = jv(ll, k0*n_r*R)*hankel1(ll, k0*R, derivative=True) - n_r*jv(ll, k0*n_r*R, derivative=True)*hankel1(ll, k0*R)
+        numerator[ll] = n_r*jv(ll, k0*R)*besselder(ll, k0*n_r*R, 0) - besselder(ll, k0*R, 0)*jv(ll, k0*n_r*R)
+        denominator[ll] = jv(ll, k0*n_r*R)*besselder(ll, k0*R, 1) - n_r*besselder(ll, k0*n_r*R, 0)*hankel1(ll, k0*R)
 
     # Compute reflection coefficients
     eps = np.finfo(float).eps
