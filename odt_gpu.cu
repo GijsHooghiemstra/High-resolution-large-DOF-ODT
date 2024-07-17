@@ -99,22 +99,6 @@ void clean_up();
 
 int main(int argc, char *argv[])
 {
-	//float DOF_x, DOF_z = 0;
-
-	// if (argc == 1)
-	// {
-	// 	printf("No arguments passed, assuming DOF to be at the center!\n");
-	// }
-	// else if (argc == 3)
-	// {
-	// 	DOF_x = atof(argv[1]);
-	// 	DOF_z = atof(argv[2]);
-	// }
-	// else
-	// {
-	// 	fprintf(stderr, "Wrong number of arguments given!\n");
-	// }
-
 	if (argc != 1)
 	{
 		fprintf(stderr, "Wrong number of arguments given!\n");
@@ -146,7 +130,6 @@ int main(int argc, char *argv[])
 		printf("Set BLOCKS to %i.\n", BLOCKS);
 	}
 	
-	//complex *fft = odt_reconstruction(sinogram, 633E-9, 1, 633E-9, dz, DOF_x, DOF_z);
 	complex *fft = odt_reconstruction(sinogram, 633E-9, 1, 633E-9, dz);
 
 	// Free all memory
@@ -284,7 +267,6 @@ __global__ void rotate_reconstruction(cuComplex *outputData, bool realPart, int 
 		int current_proj:			  			 Index of current projection / angle
 		float km_px:	  						 Wavenumber medium, in pixels
 */
-//__global__ void calculate_backpropagation(cuComplex *device_rotated_projection, cuComplex *FFT, cuComplex *prefactor, float *device_M, float dx, float dy, int Nz, int current_z, int current_proj, float km_px, float corrected_propagation_distance)
 __global__ void calculate_backpropagation(cuComplex *device_rotated_projection, cuComplex *FFT, cuComplex *prefactor, float *device_M, float dx, float dy, int Nz, int current_z, int current_proj, float km_px)
 {
 	int index = threadIdx.x + blockIdx.x * blockDim.x;
@@ -293,7 +275,6 @@ __global__ void calculate_backpropagation(cuComplex *device_rotated_projection, 
 	{
 		float z_value = current_z * (1 + 1./(Nz-1)) - Nz / 2;
 
-		//complex angular_propagator = cuda::std::exp(I * km_px * (device_M[index] - 1) * (z_value + corrected_propagation_distance));
 		complex angular_propagator = cuda::std::exp(I * km_px * (device_M[index] - 1) * z_value);
 
 		device_rotated_projection[current_z*Nz*Nz + index] = cuCdivf(cuCmulf(cuCmulf(FFT[current_proj*Nz*Nz + index], prefactor[index]), make_cuFloatComplex(cuda::std::real(angular_propagator), cuda::std::imag(angular_propagator))), make_cuFloatComplex(Nz * Nz * dx * dy, 0));
@@ -336,7 +317,6 @@ __global__ void split_complex_array(cufftComplex *input, float *real, float *ima
 		float z0:         detector distance [m]
 		float dz:		  delta z [1/m]
 */
-//complex *odt_reconstruction(complex *sinogram, float wavelength, float n_med, float z0, float dz, float DOF_x, float DOF_z)
 complex *odt_reconstruction(complex *sinogram, float wavelength, float n_med, float z0, float dz)
 {
 /*---------------------------------------------------------------------------------*/
@@ -428,9 +408,6 @@ complex *odt_reconstruction(complex *sinogram, float wavelength, float n_med, fl
 	cudaCheckError(cudaMemcpy(device_M, M, Ny * Nx * sizeof(float), cudaMemcpyHostToDevice));
 	cudaCheckError(cudaMemcpy(device_prefactor, prefactor, Ny * Nx * sizeof(complex), cudaMemcpyHostToDevice));
 
-	// float DOF_r = cuda::std::sqrtf(DOF_x*DOF_x + DOF_z*DOF_z);
-	// float DOF_angle = cuda::std::atan2(DOF_z, DOF_x);
-
 	cuComplex *device_objectFD = nullptr;
 
 	cudaCheckError(cudaMalloc((void **)&device_objectFD, Nz * Ny * Nx * sizeof(cuComplex)));
@@ -493,8 +470,6 @@ complex *odt_reconstruction(complex *sinogram, float wavelength, float n_med, fl
 
         float current_angle = 2 * M_PI * current_proj / (nproj - 1);
 
-        //float corrected_propagation_distance = -2 * DOF_r * cuda::std::sinf(current_angle + DOF_angle) / dz;
-
         cuComplex *device_rotated_projection = nullptr;
 
         cudaCheckError(cudaMalloc((void **)&device_rotated_projection, Nz * Ny * Nx * sizeof(complex)));
@@ -502,7 +477,6 @@ complex *odt_reconstruction(complex *sinogram, float wavelength, float n_med, fl
         // Perform all the backpropagations
         for (int current_z = 0; current_z < Nz; current_z++)
         {
-      	   //calculate_backpropagation<<<BLOCKS, THREADS_PER_BLOCK>>>(device_rotated_projection, device_sinogramFFT, device_prefactor, device_M, dx, dy, Nz, current_z, current_proj, km_px, corrected_propagation_distance);
       	   calculate_backpropagation<<<BLOCKS, THREADS_PER_BLOCK>>>(device_rotated_projection, device_sinogramFFT, device_prefactor, device_M, dx, dy, Nz, current_z, current_proj, km_px);
         }
 
